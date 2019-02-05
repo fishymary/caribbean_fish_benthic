@@ -402,25 +402,6 @@ pairs(trophic.benthic.m[c(2:7,10)], lower.panel=panel.smooth, upper.panel=panel.
 trophic.benthic.m$cm <- log(trophic.benthic.m$coral/trophic.benthic.m$macro)
 
 # panel fig - trophic biomass -------------------------------------------------------------
-mod.out <- data.frame(
-  y = as.character(c("coral", "coral", "coral", "coral", "coral",
-                     "coral", "macro", "macro", "macro", "macro",
-                     "macro", "macro", "cm", "cm", "cm", "cm", "cm", "cm")),
-  x = as.character(c("total.bio", "P", "SC", "GD", "BR", "SE",
-                     "total.bio", "P", "SC", "GD", "BR", "SE",
-                     "total.bio", "P", "SC", "GD", "BR", "SE")),
-  int = rep(NA,18),
-  int.se = rep(NA,18),
-  int.t = rep(NA,18),
-  int.p = rep(NA,18),
-  slp = rep(NA,18),
-  slp.se = rep(NA,18),
-  slp.t = rep(NA,18),
-  slp.p = rep(NA,18),
-  f = rep(NA,18),
-  df = rep(NA,18),
-  r2 = rep(NA,18), stringsAsFactors=F
-)
 
 plot.fish <- function(dat, x, y, i, metric){ #i is what row of mod.out to fill in
   temp <- dat[!is.na(dat[,y]),]
@@ -431,25 +412,6 @@ plot.fish <- function(dat, x, y, i, metric){ #i is what row of mod.out to fill i
   tpg <- gam(temp.sub[, y] ~ s(temp.sub[, x], k = 3), family = gaussian)
   m.sel <- model.sel(tp, tpg)
   
-  # if(m.sel$class[1]=='lm'){
-  #   mod.out[i,3] <- summary(tp)$coefficients[1]; mod.out[i,7] <- summary(tp)$coefficients[2]
-  #   mod.out[i,4] <- summary(tp)$coefficients[3]; mod.out[i,8] <- summary(tp)$coefficients[4]
-  #   mod.out[i,5] <- summary(tp)$coefficients[5]; mod.out[i,9] <- summary(tp)$coefficients[6]
-  #   mod.out[i,6] <- summary(tp)$coefficients[7]; mod.out[i,10] <- summary(tp)$coefficients[8]
-  #   mod.out[i,11] <- summary(tp)$fstatistic[1]
-  #   mod.out[i,12] <- summary(tp)$df[2]
-  #   mod.out[i,13] <- summary(tp)$r.squared
-  # } 
-  # if(m.sel$class[1]=='gam'){
-  #   mod.out[i,3] <- summary(tpg)$p.table[1]; mod.out[i,4] <- summary(tpg)$p.table[2]
-  #   mod.out[i,5] <- summary(tpg)$p.table[3]; mod.out[i,6] <- summary(tpg)$p.table[4]
-  #   mod.out[i,7] <- summary(tpg)$s.table[1]; mod.out[i,8] <- summary(tpg)$s.table[2]
-  #   mod.out[i,10] <- summary(tpg)$s.table[4]; mod.out[i,11] <- summary(tpg)$s.table[3]
-  #   mod.out[i,12] <- summary(tpg)$n
-  #   mod.out[i,13] <- summary(tpg)$dev.expl
-  # }
-  # return(mod.out)
-
   if(ncvTest(tp)$p <= 0.05){print('Non-constant Error')}
 
   if(metric=='biomass'){
@@ -507,24 +469,20 @@ plot.fish <- function(dat, x, y, i, metric){ #i is what row of mod.out to fill i
 
 }
 
-# mod.out <- plot.fish(totbio.pred.ben,'tot.bio','coral',i=1,'biomass')
-# mod.out <- plot.fish(totbio.pred.ben,'tot.bio','macro',7,'biomass')
-# plot.fish(totbio.pred.ben,'tot.bio','cm',13,'biomass')
-
 png(file.path(getwd(),'outputs',"Fig3.png"),height=2000,width=3600,res=300)
 par(mfrow=c(3,6),mar=c(1,1,1,1),oma=c(4,3,0,0),xpd=F,mgp=c(1.6,.7,0))
 plot.fish(totbio.pred.ben,'tot.bio','coral',1,'biomass')
 tp <- c('P','SC','GD','BR','SE')
 for(z in 1:5){
-  mod.out <- plot.fish(trophic.benthic.m,x=tp[z],y='coral',i=z+1,'biomass')
+  plot.fish(trophic.benthic.m,x=tp[z],y='coral',i=z+1,'biomass')
 }
-mod.out <- plot.fish(totbio.pred.ben,'tot.bio','macro',7,'biomass')
+plot.fish(totbio.pred.ben,'tot.bio','macro',7,'biomass')
 for(z in 1:5){
-  mod.out <- plot.fish(trophic.benthic.m,x=tp[z],y='macro',i=z+7,'biomass')
+  plot.fish(trophic.benthic.m,x=tp[z],y='macro',i=z+7,'biomass')
 }
-mod.out <- plot.fish(totbio.pred.ben,'tot.bio','cm',13,'biomass')
+plot.fish(totbio.pred.ben,'tot.bio','cm',13,'biomass')
 for(z in 1:5){
-  mod.out <- plot.fish(trophic.benthic.m,x=tp[z],y='cm',i=z+13,'biomass')
+  plot.fish(trophic.benthic.m,x=tp[z],y='cm',i=z+13,'biomass')
 }
 mtext("Coral Cover (%)", outer=T, side=2, at=0.83,line=1)
 mtext("Macroalgal Cover (%)", outer=T, side=2, at=0.5,line=1)
@@ -538,6 +496,26 @@ mtext("Scrapers",outer=T,side=1,at=0.92,line=1)
 mtext(expression("Biomass"~~bgroup("(","g"*m^{-2},")")),outer=T,side=1,line=2.8)
 
 dev.off()
+
+mod.out <- data.frame(
+  y = as.character(c("coral", "coral", "coral", "coral", "coral",
+                     "coral", "macro", "macro", "macro", "macro",
+                     "macro", "macro", "cm", "cm", "cm", "cm", "cm", "cm")),
+  x = as.character(c("total.bio", "P", "SC", "GD", "BR", "SE",
+                     "total.bio", "P", "SC", "GD", "BR", "SE",
+                     "total.bio", "P", "SC", "GD", "BR", "SE")),
+  int = rep(NA,18),
+  int.se = rep(NA,18),
+  int.t = rep(NA,18),
+  int.p = rep(NA,18),
+  slp = rep(NA,18),
+  slp.se = rep(NA,18),
+  slp.t = rep(NA,18),
+  slp.p = rep(NA,18),
+  f = rep(NA,18),
+  df = rep(NA,18),
+  r2 = rep(NA,18), stringsAsFactors=F
+)
 
 for(i in c(1,7,13)){
   y <- mod.out[i,'y']
@@ -1542,6 +1520,36 @@ points(temp$fit,temp$cm,pch=21,col="black",bg="grey")
 
 mtext(expression("Total Herbivore Biomass"~~bgroup("(","g "*m^{-2},")")),side=1,outer=T,cex=1)
 dev.off()
+
+# SOM 1 & 3 -------------------------------------------------------------------
+str(tot.bio.m)
+temp <- tot.bio.m
+temp$DatasetID <- as.character(temp$DatasetID); temp$DatasetID <- as.integer(temp$DatasetID)
+meta.grp <- data.frame(
+  DatasetID = c(11L, 33L, 40L, 47L, 48L, 56L, 59L, 60L, 200L, 201L, 202L,
+                 203L, 205L, 206L, 207L, 209L, 210L, 211L, 212L, 216L, 218L,
+                 223L, 262L, 581L, 699L, 700L, 700L),
+  grp = as.character(c("1 Alan & Jim", "2 Alan CO", "3 NOAA LP", "5 UVI ",
+                    "4 NOAA USVI", "6 Pete", "7 Marah", "7 Marah",
+                    "8 AGRRA", "8 AGRRA", "8 AGRRA", "8 AGRRA", "8 AGRRA",
+                    "8 AGRRA", "8 AGRRA", "8 AGRRA", "8 AGRRA", "8 AGRRA",
+                    "8 AGRRA", "8 AGRRA", "8 AGRRA", "8 AGRRA",
+                    "8 AGRRA", "7 Marah", "9 FL", "8 Waitt", "8 Waitt"))
+)
+
+temp <- left_join(temp,meta.grp,by='DatasetID')
+str(temp)
+temp %>% distinct(DatasetID,grp)
+SOM1 <- temp %>% group_by(grp) %>% summarise('n'=length(tot.bio),'minYr'=min(Year),'maxYr'=max(Year))
+sum(SOM1$n)
+write.csv(SOM1, 'outputs/SOM1.csv',row.names=F)
+
+som3 <- temp %>% group_by(Location) %>% summarise("n"=length((Replicate))) %>% ungroup()
+temp <- temp %>% group_by(Location) %>% summarise("nDat"=length(unique(DatasetID))) %>% ungroup()
+som3 <- full_join(som3,temp,by='Location')
+write.csv(som3,'outputs/SOM3.csv',row.names = FALSE)
+sum(som3$n)
+
 # end ---------------------------------------------------------------------
 
 Sys.time()-Start
