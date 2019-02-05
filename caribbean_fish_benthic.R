@@ -1,9 +1,9 @@
 # -----------------------------------------------------------------------
 # FISH FUNCTIONAL GROUPS & BENTHIC COVER IN THE CARIBBEAN
-# Mary K. Donovan (donovan.maryk@gmail.com)
 # -----------------------------------------------------------------------
 rm(list=ls())
 Start <- Sys.time()
+
 # initialization ----------------------------------------------------------
 library(dplyr) # v.0.7.6
 library(tidyr) # v.0.8.0
@@ -26,7 +26,6 @@ colnames(fish.use)
 
 # fix a loc name
 fish.use$Location[fish.use$Location=="Bahamas_Exuma"] <- "Bahamas_Other"
-
 
 # depth hist ---------------------------------------------------------------
 png(file='outputs/SOM_depth.png',height=1500,width=1800,res=300)
@@ -59,6 +58,7 @@ totbio.mod.pred[totbio.mod.pred$tot.bio == max(totbio.mod.pred$tot.bio),]
 totbio.mod.CI <- predictInterval(totbio.mod.l, newdata = newdat, n.sims = 10000, level=0.05)
 totbio.mod.CI <- exp(totbio.mod.CI)-1
 totbio.mod.CI <- data.frame(Location=newdat$Location,tot.bio=totbio.mod.CI[,1],tot.up=totbio.mod.CI[,2],tot.down=totbio.mod.CI[,3])
+
 totbio.mod.CI[totbio.mod.CI$tot.bio == min(totbio.mod.CI$tot.bio),]
 totbio.mod.CI[totbio.mod.CI$tot.bio == max(totbio.mod.CI$tot.bio),]
 totbio.mod.CI[totbio.mod.CI$tot.bio == max(totbio.mod.CI$tot.bio),'tot.bio']/totbio.mod.CI[totbio.mod.CI$tot.bio == min(totbio.mod.CI$tot.bio),'tot.bio']
@@ -175,6 +175,7 @@ write.csv(temp, 'outputs/SOM5.csv',row.names=F)
 
 temp[temp$P.fit == min(temp$P.fit),]
 temp[temp$P.fit == max(temp$P.fit),]
+temp$P.fit[temp$P.fit == max(temp$P.fit)]/temp$P.fit[temp$P.fit == min(temp$P.fit)]
 
 temp[temp$SC.fit == min(temp$SC.fit),]
 temp[temp$SC.fit == max(temp$SC.fit),]
