@@ -3,7 +3,7 @@
 # Mary K. Donovan (donovan.maryk@gmail.com)
 # -----------------------------------------------------------------------
 rm(list=ls())
-
+Start <- Sys.time()
 # initialization ----------------------------------------------------------
 library(dplyr) # v.0.7.6
 library(tidyr) # v.0.8.0
@@ -422,7 +422,7 @@ mod.out <- data.frame(
   r2 = rep(NA,18), stringsAsFactors=F
 )
 
-plot.fish <- function(dat, x, y, k, metric){ #k is what row of mod.out to fill in
+plot.fish <- function(dat, x, y, i, metric){ #i is what row of mod.out to fill in
   temp <- dat[!is.na(dat[,y]),]
   tp <- lm(temp[,y]~temp[,x])
   cook <- cooks.distance(tp)
@@ -431,20 +431,39 @@ plot.fish <- function(dat, x, y, k, metric){ #k is what row of mod.out to fill i
   tpg <- gam(temp.sub[, y] ~ s(temp.sub[, x], k = 3), family = gaussian)
   m.sel <- model.sel(tp, tpg)
   
+  # if(m.sel$class[1]=='lm'){
+  #   mod.out[i,3] <- summary(tp)$coefficients[1]; mod.out[i,7] <- summary(tp)$coefficients[2]
+  #   mod.out[i,4] <- summary(tp)$coefficients[3]; mod.out[i,8] <- summary(tp)$coefficients[4]
+  #   mod.out[i,5] <- summary(tp)$coefficients[5]; mod.out[i,9] <- summary(tp)$coefficients[6]
+  #   mod.out[i,6] <- summary(tp)$coefficients[7]; mod.out[i,10] <- summary(tp)$coefficients[8]
+  #   mod.out[i,11] <- summary(tp)$fstatistic[1]
+  #   mod.out[i,12] <- summary(tp)$df[2]
+  #   mod.out[i,13] <- summary(tp)$r.squared
+  # } 
+  # if(m.sel$class[1]=='gam'){
+  #   mod.out[i,3] <- summary(tpg)$p.table[1]; mod.out[i,4] <- summary(tpg)$p.table[2]
+  #   mod.out[i,5] <- summary(tpg)$p.table[3]; mod.out[i,6] <- summary(tpg)$p.table[4]
+  #   mod.out[i,7] <- summary(tpg)$s.table[1]; mod.out[i,8] <- summary(tpg)$s.table[2]
+  #   mod.out[i,10] <- summary(tpg)$s.table[4]; mod.out[i,11] <- summary(tpg)$s.table[3]
+  #   mod.out[i,12] <- summary(tpg)$n
+  #   mod.out[i,13] <- summary(tpg)$dev.expl
+  # }
+  # return(mod.out)
+
   if(ncvTest(tp)$p <= 0.05){print('Non-constant Error')}
 
   if(metric=='biomass'){
-    ylim.go <- c(0,60); if(c(k > 6 & k < 13)){ylim.go <- c(0,80)}; if(k > 12){ylim.go <- c(-2.2,2.2)}
-    xlim.go <- c(0,85); if(k==2|k==8|k==14){xlim.go <- c(0,25)}; if(k==3|k==9|k==15){xlim.go <- c(0,36)}
-    if(k==4|k==10|k==16){xlim.go <- c(0,8)}; if(k==5|k==11|k==17){xlim.go <- c(0,8.5)}; if(k==6|k==12|k==18){xlim.go <- c(0,20)}
+    ylim.go <- c(0,60); if(c(i > 6 & i < 13)){ylim.go <- c(0,80)}; if(i > 12){ylim.go <- c(-2.2,2.2)}
+    xlim.go <- c(0,85); if(i==2|i==8|i==14){xlim.go <- c(0,25)}; if(i==3|i==9|i==15){xlim.go <- c(0,36)}
+    if(i==4|i==10|i==16){xlim.go <- c(0,8)}; if(i==5|i==11|i==17){xlim.go <- c(0,8.5)}; if(i==6|i==12|i==18){xlim.go <- c(0,20)}
   }
   if(metric=='size'){
-    ylim.go <- c(0,60); if(c(k > 6 & k < 13)){ylim.go <- c(0,80)}; if(k > 12){ylim.go <- c(-2.2,2.2)}
+    ylim.go <- c(0,60); if(c(i > 6 & i < 13)){ylim.go <- c(0,80)}; if(i > 12){ylim.go <- c(-2.2,2.2)}
     xlim.go <- c(5,30)
   }
-  
-  xaxt.go <- rep('n',18); if(k > 12){xaxt.go <- 's'}
-  yaxt.go <- rep('n',18); if(k==1|k==7|k==13){yaxt.go <- 's'}
+
+  xaxt.go <- rep('n',18); if(i > 12){xaxt.go <- 's'}
+  yaxt.go <- rep('n',18); if(i==1|i==7|i==13){yaxt.go <- 's'}
 
   if(m.sel$class[1]=='lm' & summary(tp)$coefficients[8] <= 0.05){
     tp.pred <- predict(tp,se.fit=T)
@@ -485,41 +504,27 @@ plot.fish <- function(dat, x, y, k, metric){ #k is what row of mod.out to fill i
     }
   }
 
-  if(m.sel$class[1]=='lm'){
-    mod.out[k,3] <- summary(tp)$coefficients[1]; mod.out[k,7] <- summary(tp)$coefficients[2]
-    mod.out[k,4] <- summary(tp)$coefficients[3]; mod.out[k,8] <- summary(tp)$coefficients[4]
-    mod.out[k,5] <- summary(tp)$coefficients[5]; mod.out[k,9] <- summary(tp)$coefficients[6]
-    mod.out[k,6] <- summary(tp)$coefficients[7]; mod.out[k,10] <- summary(tp)$coefficients[8]
-    mod.out[k,11] <- summary(tp)$fstatistic[1]
-    mod.out[k,12] <- summary(tp)$df[2]
-    mod.out[k,13] <- summary(tp)$r.squared
-  } else {
-    mod.out[k,3] <- summary(tpg)$p.table[1]; mod.out[k,4] <- summary(tpg)$p.table[2]
-    mod.out[k,5] <- summary(tpg)$p.table[3]; mod.out[k,6] <- summary(tpg)$p.table[4]
-    mod.out[k,7] <- summary(tpg)$s.table[1]; mod.out[k,8] <- summary(tpg)$s.table[2]
-    mod.out[k,10] <- summary(tpg)$s.table[4]; mod.out[k,11] <- summary(tpg)$s.table[3]
-    mod.out[k,12] <- summary(tpg)$n
-    mod.out[k,13] <- summary(tpg)$dev.expl
-  }
+
 }
 
-plot.fish(totbio.pred.ben,'tot.bio','coral',1)
-plot.fish(totbio.pred.ben,'tot.bio','macro',7)
-plot.fish(totbio.pred.ben,'tot.bio','cm',13)
+# mod.out <- plot.fish(totbio.pred.ben,'tot.bio','coral',i=1,'biomass')
+# mod.out <- plot.fish(totbio.pred.ben,'tot.bio','macro',7,'biomass')
+# plot.fish(totbio.pred.ben,'tot.bio','cm',13,'biomass')
 
 png(file.path(getwd(),'outputs',"Fig3.png"),height=2000,width=3600,res=300)
 par(mfrow=c(3,6),mar=c(1,1,1,1),oma=c(4,3,0,0),xpd=F,mgp=c(1.6,.7,0))
 plot.fish(totbio.pred.ben,'tot.bio','coral',1,'biomass')
-for(z in 2:6){
-  plot.fish(trophic.benthic.m,x=mod.out$x[z],y=mod.out$y[z],k=z,'biomass')
+tp <- c('P','SC','GD','BR','SE')
+for(z in 1:5){
+  mod.out <- plot.fish(trophic.benthic.m,x=tp[z],y='coral',i=z+1,'biomass')
 }
-plot.fish(totbio.pred.ben,'tot.bio','macro',7,'biomass')
-for(z in 8:12){
-  plot.fish(trophic.benthic.m,x=mod.out$x[z],y=mod.out$y[z],k=z,'biomass')
+mod.out <- plot.fish(totbio.pred.ben,'tot.bio','macro',7,'biomass')
+for(z in 1:5){
+  mod.out <- plot.fish(trophic.benthic.m,x=tp[z],y='macro',i=z+7,'biomass')
 }
-plot.fish(totbio.pred.ben,'tot.bio','cm',13,'biomass')
-for(z in 14:18){
-  plot.fish(trophic.benthic.m,x=mod.out$x[z],y=mod.out$y[z],k=z,'biomass')
+mod.out <- plot.fish(totbio.pred.ben,'tot.bio','cm',13,'biomass')
+for(z in 1:5){
+  mod.out <- plot.fish(trophic.benthic.m,x=tp[z],y='cm',i=z+13,'biomass')
 }
 mtext("Coral Cover (%)", outer=T, side=2, at=0.83,line=1)
 mtext("Macroalgal Cover (%)", outer=T, side=2, at=0.5,line=1)
@@ -533,6 +538,68 @@ mtext("Scrapers",outer=T,side=1,at=0.92,line=1)
 mtext(expression("Biomass"~~bgroup("(","g"*m^{-2},")")),outer=T,side=1,line=2.8)
 
 dev.off()
+
+for(i in c(1,7,13)){
+  y <- mod.out[i,'y']
+  x <- 'tot.bio'
+  dat <- totbio.pred.ben
+  temp <- dat[!is.na(dat[,y]),]
+  tp <- lm(temp[,y]~temp[,x])
+  cook <- cooks.distance(tp)
+  temp.sub <- temp[!cook >= 0.50, ]
+  tp <- lm(temp.sub[, y] ~ temp.sub[, x])
+  tpg <- gam(temp.sub[, y] ~ s(temp.sub[, x], k = 3), family = gaussian)
+  m.sel <- model.sel(tp, tpg)
+  
+  if(m.sel$class[1]=='lm'){
+    mod.out[i,3] <- summary(tp)$coefficients[1]; mod.out[i,7] <- summary(tp)$coefficients[2]
+    mod.out[i,4] <- summary(tp)$coefficients[3]; mod.out[i,8] <- summary(tp)$coefficients[4]
+    mod.out[i,5] <- summary(tp)$coefficients[5]; mod.out[i,9] <- summary(tp)$coefficients[6]
+    mod.out[i,6] <- summary(tp)$coefficients[7]; mod.out[i,10] <- summary(tp)$coefficients[8]
+    mod.out[i,11] <- summary(tp)$fstatistic[1]
+    mod.out[i,12] <- summary(tp)$df[2]
+    mod.out[i,13] <- summary(tp)$r.squared
+  }
+  if(m.sel$class[1]=='gam'){
+    mod.out[i,3] <- summary(tpg)$p.table[1]; mod.out[i,4] <- summary(tpg)$p.table[2]
+    mod.out[i,5] <- summary(tpg)$p.table[3]; mod.out[i,6] <- summary(tpg)$p.table[4]
+    mod.out[i,7] <- summary(tpg)$s.table[1]; mod.out[i,8] <- summary(tpg)$s.table[2]
+    mod.out[i,10] <- summary(tpg)$s.table[4]; mod.out[i,11] <- summary(tpg)$s.table[3]
+    mod.out[i,12] <- summary(tpg)$n
+    mod.out[i,13] <- summary(tpg)$dev.expl
+  }
+}
+
+for(i in c(2:6,8:12,14:18)){
+  y <- mod.out[i,'y']
+  x <- mod.out[i,'x']
+  dat <- trophic.benthic.m
+  temp <- dat[!is.na(dat[,y]),]
+  tp <- lm(temp[,y]~temp[,x])
+  cook <- cooks.distance(tp)
+  temp.sub <- temp[!cook >= 0.50, ]
+  tp <- lm(temp.sub[, y] ~ temp.sub[, x])
+  tpg <- gam(temp.sub[, y] ~ s(temp.sub[, x], k = 3), family = gaussian)
+  m.sel <- model.sel(tp, tpg)
+  
+  if(m.sel$class[1]=='lm'){
+    mod.out[i,3] <- summary(tp)$coefficients[1]; mod.out[i,7] <- summary(tp)$coefficients[2]
+    mod.out[i,4] <- summary(tp)$coefficients[3]; mod.out[i,8] <- summary(tp)$coefficients[4]
+    mod.out[i,5] <- summary(tp)$coefficients[5]; mod.out[i,9] <- summary(tp)$coefficients[6]
+    mod.out[i,6] <- summary(tp)$coefficients[7]; mod.out[i,10] <- summary(tp)$coefficients[8]
+    mod.out[i,11] <- summary(tp)$fstatistic[1]
+    mod.out[i,12] <- summary(tp)$df[2]
+    mod.out[i,13] <- summary(tp)$r.squared
+  }
+  if(m.sel$class[1]=='gam'){
+    mod.out[i,3] <- summary(tpg)$p.table[1]; mod.out[i,4] <- summary(tpg)$p.table[2]
+    mod.out[i,5] <- summary(tpg)$p.table[3]; mod.out[i,6] <- summary(tpg)$p.table[4]
+    mod.out[i,7] <- summary(tpg)$s.table[1]; mod.out[i,8] <- summary(tpg)$s.table[2]
+    mod.out[i,10] <- summary(tpg)$s.table[4]; mod.out[i,11] <- summary(tpg)$s.table[3]
+    mod.out[i,12] <- summary(tpg)$n
+    mod.out[i,13] <- summary(tpg)$dev.expl
+  }
+}
 
 write.csv(mod.out, 'outputs/Table1.csv',row.names=F)
 
@@ -766,26 +833,6 @@ str(size_est_tbl)
 write.csv(size_est_tbl, 'outputs/SOM6.csv',row.names=F)
 
 # panel fig - mean size ---------------------------------------------------
-mod.out <- data.frame(
-  y = as.character(c("coral", "coral", "coral", "coral", "coral",
-                     "coral", "macro", "macro", "macro", "macro",
-                     "macro", "macro", "cm", "cm", "cm", "cm", "cm", "cm")),
-  x = as.character(c("total.bio", "P", "SC", "GD", "BR", "SE",
-                     "total.bio", "P", "SC", "GD", "BR", "SE",
-                     "total.bio", "P", "SC", "GD", "BR", "SE")),
-  int = rep(NA,18),
-  int.se = rep(NA,18),
-  int.t = rep(NA,18),
-  int.p = rep(NA,18),
-  slp = rep(NA,18),
-  slp.se = rep(NA,18),
-  slp.t = rep(NA,18),
-  slp.p = rep(NA,18),
-  f = rep(NA,18),
-  df = rep(NA,18),
-  r2 = rep(NA,18), stringsAsFactors=F
-)
-
 png('outputs/Fig4.png',height=2000,width=3600,res=300)
 par(mfrow=c(3,6),mar=c(1,1,1,1),oma=c(4,3,0,0),xpd=F,mgp=c(1.6,.7,0))
 plot.fish(size.bio.ben,'mean.size','coral',1,'size')
@@ -822,6 +869,148 @@ mtext("Scrapers",outer=T,side=1,at=0.92,line=1)
 mtext(expression("Biomass"~~bgroup("(","g"*m^{-2},")")),outer=T,side=1,line=2.8)
 
 dev.off()
+
+mod.out <- data.frame(
+  y = as.character(c("coral", "coral", "coral", "coral", "coral",
+                     "coral", "macro", "macro", "macro", "macro",
+                     "macro", "macro", "cm", "cm", "cm", "cm", "cm", "cm")),
+  x = as.character(c('mean.size','Pmean.size','SCmean.size','GDmean.size','BRmean.size','SEmean.size',
+                     'mean.size','Pmean.size','SCmean.size','GDmean.size','BRmean.size','SEmean.size',
+                     'mean.size','Pmean.size','SCmean.size','GDmean.size','BRmean.size','SEmean.size')),
+  int = rep(NA,18),
+  int.se = rep(NA,18),
+  int.t = rep(NA,18),
+  int.p = rep(NA,18),
+  slp = rep(NA,18),
+  slp.se = rep(NA,18),
+  slp.t = rep(NA,18),
+  slp.p = rep(NA,18),
+  f = rep(NA,18),
+  df = rep(NA,18),
+  r2 = rep(NA,18), stringsAsFactors=F
+)
+
+for(i in c(1,7,13)){
+  y <- mod.out[i,'y']
+  x <- mod.out[i,'x']
+  dat <- size.bio.ben
+  temp <- dat[!is.na(dat[,y]),]
+  tp <- lm(temp[,y]~temp[,x])
+  cook <- cooks.distance(tp)
+  temp.sub <- temp[!cook >= 0.50, ]
+  tp <- lm(temp.sub[, y] ~ temp.sub[, x])
+  tpg <- gam(temp.sub[, y] ~ s(temp.sub[, x], k = 3), family = gaussian)
+  m.sel <- model.sel(tp, tpg)
+  
+  if(m.sel$class[1]=='lm'){
+    mod.out[i,3] <- summary(tp)$coefficients[1]; mod.out[i,7] <- summary(tp)$coefficients[2]
+    mod.out[i,4] <- summary(tp)$coefficients[3]; mod.out[i,8] <- summary(tp)$coefficients[4]
+    mod.out[i,5] <- summary(tp)$coefficients[5]; mod.out[i,9] <- summary(tp)$coefficients[6]
+    mod.out[i,6] <- summary(tp)$coefficients[7]; mod.out[i,10] <- summary(tp)$coefficients[8]
+    mod.out[i,11] <- summary(tp)$fstatistic[1]
+    mod.out[i,12] <- summary(tp)$df[2]
+    mod.out[i,13] <- summary(tp)$r.squared
+  }
+  if(m.sel$class[1]=='gam'){
+    mod.out[i,3] <- summary(tpg)$p.table[1]; mod.out[i,4] <- summary(tpg)$p.table[2]
+    mod.out[i,5] <- summary(tpg)$p.table[3]; mod.out[i,6] <- summary(tpg)$p.table[4]
+    mod.out[i,7] <- summary(tpg)$s.table[1]; mod.out[i,8] <- summary(tpg)$s.table[2]
+    mod.out[i,10] <- summary(tpg)$s.table[4]; mod.out[i,11] <- summary(tpg)$s.table[3]
+    mod.out[i,12] <- summary(tpg)$n
+    mod.out[i,13] <- summary(tpg)$dev.expl
+  }
+}
+sizelist <- list(size.bio.ben,sizeP.bio.ben,sizeSC.bio.ben,sizeGD.bio.ben,sizeBR.bio.ben,sizeSE.bio.ben)
+for(i in c(2:6)){
+  y <- mod.out[i,'y']
+  x <- mod.out[i,'x']
+  dat <- sizelist[[i]]
+  temp <- dat[!is.na(dat[,y]),]
+  tp <- lm(temp[,y]~temp[,x])
+  cook <- cooks.distance(tp)
+  temp.sub <- temp[!cook >= 0.50, ]
+  tp <- lm(temp.sub[, y] ~ temp.sub[, x])
+  tpg <- gam(temp.sub[, y] ~ s(temp.sub[, x], k = 3), family = gaussian)
+  m.sel <- model.sel(tp, tpg)
+  
+  if(m.sel$class[1]=='lm'){
+    mod.out[i,3] <- summary(tp)$coefficients[1]; mod.out[i,7] <- summary(tp)$coefficients[2]
+    mod.out[i,4] <- summary(tp)$coefficients[3]; mod.out[i,8] <- summary(tp)$coefficients[4]
+    mod.out[i,5] <- summary(tp)$coefficients[5]; mod.out[i,9] <- summary(tp)$coefficients[6]
+    mod.out[i,6] <- summary(tp)$coefficients[7]; mod.out[i,10] <- summary(tp)$coefficients[8]
+    mod.out[i,11] <- summary(tp)$fstatistic[1]
+    mod.out[i,12] <- summary(tp)$df[2]
+    mod.out[i,13] <- summary(tp)$r.squared
+  }
+  if(m.sel$class[1]=='gam'){
+    mod.out[i,3] <- summary(tpg)$p.table[1]; mod.out[i,4] <- summary(tpg)$p.table[2]
+    mod.out[i,5] <- summary(tpg)$p.table[3]; mod.out[i,6] <- summary(tpg)$p.table[4]
+    mod.out[i,7] <- summary(tpg)$s.table[1]; mod.out[i,8] <- summary(tpg)$s.table[2]
+    mod.out[i,10] <- summary(tpg)$s.table[4]; mod.out[i,11] <- summary(tpg)$s.table[3]
+    mod.out[i,12] <- summary(tpg)$n
+    mod.out[i,13] <- summary(tpg)$dev.expl
+  }
+}
+for(i in c(8:12)){
+  y <- mod.out[i,'y']
+  x <- mod.out[i,'x']
+  dat <- sizelist[[i-6]]
+  temp <- dat[!is.na(dat[,y]),]
+  tp <- lm(temp[,y]~temp[,x])
+  cook <- cooks.distance(tp)
+  temp.sub <- temp[!cook >= 0.50, ]
+  tp <- lm(temp.sub[, y] ~ temp.sub[, x])
+  tpg <- gam(temp.sub[, y] ~ s(temp.sub[, x], k = 3), family = gaussian)
+  m.sel <- model.sel(tp, tpg)
+  
+  if(m.sel$class[1]=='lm'){
+    mod.out[i,3] <- summary(tp)$coefficients[1]; mod.out[i,7] <- summary(tp)$coefficients[2]
+    mod.out[i,4] <- summary(tp)$coefficients[3]; mod.out[i,8] <- summary(tp)$coefficients[4]
+    mod.out[i,5] <- summary(tp)$coefficients[5]; mod.out[i,9] <- summary(tp)$coefficients[6]
+    mod.out[i,6] <- summary(tp)$coefficients[7]; mod.out[i,10] <- summary(tp)$coefficients[8]
+    mod.out[i,11] <- summary(tp)$fstatistic[1]
+    mod.out[i,12] <- summary(tp)$df[2]
+    mod.out[i,13] <- summary(tp)$r.squared
+  }
+  if(m.sel$class[1]=='gam'){
+    mod.out[i,3] <- summary(tpg)$p.table[1]; mod.out[i,4] <- summary(tpg)$p.table[2]
+    mod.out[i,5] <- summary(tpg)$p.table[3]; mod.out[i,6] <- summary(tpg)$p.table[4]
+    mod.out[i,7] <- summary(tpg)$s.table[1]; mod.out[i,8] <- summary(tpg)$s.table[2]
+    mod.out[i,10] <- summary(tpg)$s.table[4]; mod.out[i,11] <- summary(tpg)$s.table[3]
+    mod.out[i,12] <- summary(tpg)$n
+    mod.out[i,13] <- summary(tpg)$dev.expl
+  }
+}
+for(i in c(14:18)){
+  y <- mod.out[i,'y']
+  x <- mod.out[i,'x']
+  dat <- sizelist[[i-12]]
+  temp <- dat[!is.na(dat[,y]),]
+  tp <- lm(temp[,y]~temp[,x])
+  cook <- cooks.distance(tp)
+  temp.sub <- temp[!cook >= 0.50, ]
+  tp <- lm(temp.sub[, y] ~ temp.sub[, x])
+  tpg <- gam(temp.sub[, y] ~ s(temp.sub[, x], k = 3), family = gaussian)
+  m.sel <- model.sel(tp, tpg)
+  
+  if(m.sel$class[1]=='lm'){
+    mod.out[i,3] <- summary(tp)$coefficients[1]; mod.out[i,7] <- summary(tp)$coefficients[2]
+    mod.out[i,4] <- summary(tp)$coefficients[3]; mod.out[i,8] <- summary(tp)$coefficients[4]
+    mod.out[i,5] <- summary(tp)$coefficients[5]; mod.out[i,9] <- summary(tp)$coefficients[6]
+    mod.out[i,6] <- summary(tp)$coefficients[7]; mod.out[i,10] <- summary(tp)$coefficients[8]
+    mod.out[i,11] <- summary(tp)$fstatistic[1]
+    mod.out[i,12] <- summary(tp)$df[2]
+    mod.out[i,13] <- summary(tp)$r.squared
+  }
+  if(m.sel$class[1]=='gam'){
+    mod.out[i,3] <- summary(tpg)$p.table[1]; mod.out[i,4] <- summary(tpg)$p.table[2]
+    mod.out[i,5] <- summary(tpg)$p.table[3]; mod.out[i,6] <- summary(tpg)$p.table[4]
+    mod.out[i,7] <- summary(tpg)$s.table[1]; mod.out[i,8] <- summary(tpg)$s.table[2]
+    mod.out[i,10] <- summary(tpg)$s.table[4]; mod.out[i,11] <- summary(tpg)$s.table[3]
+    mod.out[i,12] <- summary(tpg)$n
+    mod.out[i,13] <- summary(tpg)$dev.expl
+  }
+}
 
 write.csv(mod.out, 'outputs/Table2.csv',row.names=F)
 
@@ -1355,4 +1544,4 @@ mtext(expression("Total Herbivore Biomass"~~bgroup("(","g "*m^{-2},")")),side=1,
 dev.off()
 # end ---------------------------------------------------------------------
 
-
+Sys.time()-Start
